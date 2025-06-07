@@ -1,0 +1,40 @@
+name: CD / Release
+
+on:
+  push:
+    branches:
+      - release
+
+jobs:
+  qa-check:
+    uses: ./.github/workflows/qa-code-quality.yml
+
+  release:
+    needs: qa-check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Update manifest version
+        run: |
+          npm pkg get version | xargs -I {} sed -i 's/"version": ".*"/"version": "{}"/' extension/manifest.json
+
+      - name: Create zip artifact
+        run: |
+          zip -r ChromeFlex.zip extension/
+
+      - name: Run semantic-release
+        run: npx semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
