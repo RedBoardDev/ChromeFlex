@@ -1,0 +1,46 @@
+{
+	"files": {
+		"ignore": ["dist/**/*", "node_modules/**/*", ".git/**/*"]
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"style": {
+				"useSingleVarDeclarator": "warn",
+				"noVar": "error",
+				"useConst": "error"
+			},
+			"complexity": {
+				"noForEach": "error"
+			},
+			"performance": {
+				"noDelete": "error"
+			},
+			"security": {
+				"noGlobalEval": "error",
+				"noDangerouslySetInnerHtml": "error"
+			},
+			"correctness": {
+				"noUndeclaredVariables": "error"
+			},
+			"suspicious": {
+				"noExplicitAny": "error"
+			}
+		}
+	},
+	"javascript": {
+		"globals": ["chrome", "document", "window", "localStorage"]
+	},
+	"overrides": [
+		{
+			"include": ["src/**/*.ts"],
+			"linter": {
+				"rules": {
+					"security": {
+						"noDangerouslySetInnerHtml": "error"
+					}
+				}
+			}
+		}
+	]
+}
