@@ -396,44 +396,57 @@ export class ChromeFlexFeatureManager {
 	}
 
 	private async loadFeatures(): Promise<void> {
-		// Auto-discover features from the features directory
-		const featureModules = await this.discoverFeatures();
+		// Import all features statically to avoid dynamic import issues in Chrome extensions
+		const featureClasses = await this.importAllFeatures();
 
-		logger.info(`Discovered ${featureModules.length} feature modules`);
+		logger.info(`Loading ${featureClasses.length} feature modules`);
 
-		for (const moduleInfo of featureModules) {
+		for (const FeatureClass of featureClasses) {
 			try {
-				const module = await import(/* @vite-ignore */ moduleInfo.path);
-
-				if (module.default && typeof module.default === "function") {
-					// Create feature instance
-					const FeatureClass = module.default;
-					const feature = new FeatureClass();
-
-					featureRegistry.register(feature);
-				} else {
-					logger.warn(
-						`Feature module ${moduleInfo.name} does not export a default class`,
-					);
-				}
+				const feature = new FeatureClass();
+				featureRegistry.register(feature);
+				logger.debug(`Successfully loaded feature: ${feature.name}`);
 			} catch (error) {
-				logger.error(`Failed to load feature ${moduleInfo.name}:`, error);
-				// Continue loading other features even if one fails
+				logger.error("Failed to instantiate feature:", error);
 			}
 		}
 	}
 
-	private async discoverFeatures(): Promise<
-		Array<{ name: string; path: string }>
-	> {
-		// In a real implementation, this would scan the features directory
-		// For now, we'll return a hardcoded list that will be manually updated
-		// This is where you'd add new features
+	private async importAllFeatures(): Promise<Array<new () => Feature>> {
+		// Static imports to avoid dynamic import resolution issues in Chrome extensions
+		const features: Array<new () => Feature> = [];
 
-		return [
-			{ name: "example-button", path: "@/features/example-button" },
-			{ name: "test-feature", path: "@/features/test-feature" },
-		];
+		// try {
+		// 	// Import example-button feature
+		// 	const { default: ExampleButtonFeature } = await import(
+		// 		"../features/example-button/index.js"
+		// 	);
+		// 	features.push(ExampleButtonFeature);
+		// } catch (error) {
+		// 	logger.warn("Could not load example-button feature:", error);
+		// }
+
+		// try {
+		// 	// Import test-feature
+		// 	const { default: TestFeature } = await import(
+		// 		"../features/test-feature/index.js"
+		// 	);
+		// 	features.push(TestFeature);
+		// } catch (error) {
+		// 	logger.warn("Could not load test-feature:", error);
+		// }
+
+		try {
+			// Import github-pr-review-filter feature
+			const { default: GithubPrReviewFilterFeature } = await import(
+				"../features/github-pr-review-filter/index.js"
+			);
+			features.push(GithubPrReviewFilterFeature);
+		} catch (error) {
+			logger.warn("Could not load github-pr-review-filter feature:", error);
+		}
+
+		return features;
 	}
 }
 
