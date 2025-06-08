@@ -19,7 +19,8 @@ export interface GitHubPullRequestsInfo {
 export function isGitHubPullRequestsPage(url: string): boolean {
 	try {
 		// Pattern to match GitHub PR pages with optional query parameters and fragments
-		const urlPattern = /^https:\/\/github\.com\/[^\/]+\/[^\/]+\/pulls(?:\/.*)?(?:\?.*)?(?:#.*)?$/;
+		const urlPattern =
+			/^https:\/\/github\.com\/[^\/]+\/[^\/]+\/pulls(?:\/.*)?(?:\?.*)?(?:#.*)?$/;
 		const patternMatch = urlPattern.test(url);
 
 		if (!patternMatch) {
@@ -41,7 +42,9 @@ export function isGitHubPullRequestsPage(url: string): boolean {
 /**
  * Parses a GitHub URL to extract repository and pull request information
  */
-export function parseGitHubPullRequestsUrl(url: string): GitHubPullRequestsInfo | null {
+export function parseGitHubPullRequestsUrl(
+	url: string,
+): GitHubPullRequestsInfo | null {
 	try {
 		if (!isGitHubPullRequestsPage(url)) {
 			return null;
@@ -54,9 +57,9 @@ export function parseGitHubPullRequestsUrl(url: string): GitHubPullRequestsInfo 
 			return {
 				repository: {
 					owner: pathParts[0],
-					name: pathParts[1]
+					name: pathParts[1],
 				},
-				searchParams: urlObj.searchParams
+				searchParams: urlObj.searchParams,
 			};
 		}
 
@@ -67,19 +70,25 @@ export function parseGitHubPullRequestsUrl(url: string): GitHubPullRequestsInfo 
 }
 
 /**
- * Builds a GitHub pull requests URL with specific query parameters
+ * Builds a GitHub pull requests URL with query parameters
  */
 export function buildGitHubPullRequestsUrl(
 	repository: GitHubRepository,
-	queryParams: Record<string, string> = {}
+	queryParams: Record<string, string> = {},
 ): string {
-	const baseUrl = `https://github.com/${repository.owner}/${repository.name}/pulls`;
-	const url = new URL(baseUrl);
+	try {
+		const url = new URL(
+			`https://github.com/${repository.owner}/${repository.name}/pulls`,
+		);
 
-	// Add query parameters
-	Object.entries(queryParams).forEach(([key, value]) => {
-		url.searchParams.set(key, value);
-	});
+		// Add query parameters
+		for (const [key, value] of Object.entries(queryParams)) {
+			url.searchParams.set(key, value);
+		}
 
-	return url.toString();
+		return url.toString();
+	} catch (error) {
+		// Fallback to basic URL if construction fails
+		return `https://github.com/${repository.owner}/${repository.name}/pulls`;
+	}
 }

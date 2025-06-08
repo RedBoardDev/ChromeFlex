@@ -20,7 +20,8 @@ export interface FilterConfig {
 }
 
 export const DEFAULT_FILTER_CONFIG: FilterConfig = {
-	reviewFilterQuery: "sort:updated-desc is:pr is:open user-review-requested:@me",
+	reviewFilterQuery:
+		"sort:updated-desc is:pr is:open user-review-requested:@me",
 	buttonText: "Review PR",
-	targetButtonSelector: "button.btn-link.rgh-open-all-conversations.px-2"
+	targetButtonSelector: "button.btn-link.rgh-open-all-conversations.px-2",
 };

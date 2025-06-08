@@ -1,9 +1,12 @@
 import { BaseFeature } from "@/core/base-feature";
 import type { FeatureConfigInput, FeatureContext } from "@/types";
-import { isGitHubPullRequestsPage, parseGitHubPullRequestsUrl } from "./github-url";
-import { setupNavigationListener } from "./github-navigation";
-import { FilterManager } from "./filter-manager";
 import { ButtonManager } from "./button-manager";
+import { FilterManager } from "./filter-manager";
+import { setupNavigationListener } from "./github-navigation";
+import {
+	isGitHubPullRequestsPage,
+	parseGitHubPullRequestsUrl,
+} from "./github-url";
 import { DEFAULT_FILTER_CONFIG, type FilterConfig } from "./types";
 
 export default class GitHubPrReviewFilterFeature extends BaseFeature {
@@ -45,7 +48,9 @@ export default class GitHubPrReviewFilterFeature extends BaseFeature {
 
 		// Initialize managers
 		this.filterManager = new FilterManager(this.filterConfig);
-		this.buttonManager = new ButtonManager(this.filterConfig);
+		this.buttonManager = new ButtonManager(this.filterConfig, () => {
+			this.handleButtonClick();
+		});
 	}
 
 	protected async onInit(context: FeatureContext): Promise<void> {
@@ -77,22 +82,20 @@ export default class GitHubPrReviewFilterFeature extends BaseFeature {
 			return;
 		}
 
-		this.logger.info("On PR page, setting up button observer");
+		this.logger.info("On PR page, creating button");
 
 		// Update URL info
 		this.filterManager.updateUrlInfo(urlInfo);
 
-		// Setup button observer
-		this.buttonManager.setupButtonObserver(() => {
-			this.handleButtonClick();
-		});
+		// Create button
+		this.buttonManager.createButton();
 	}
 
 	protected async onStop(): Promise<void> {
 		this.logger.info("Stopping GitHub PR Review Filter feature");
 
-		// Cleanup button manager
-		this.buttonManager.cleanup();
+		// Remove button
+		this.buttonManager.removeButton();
 
 		// Reset filter URL info
 		this.filterManager.updateUrlInfo(null);
@@ -107,8 +110,8 @@ export default class GitHubPrReviewFilterFeature extends BaseFeature {
 			this.navigationCleanup = null;
 		}
 
-		// Cleanup managers
-		this.buttonManager.cleanup();
+		// Remove button
+		this.buttonManager.removeButton();
 
 		this.emitEvent("github-pr-review-filter:destroyed", {
 			timestamp: Date.now(),
@@ -148,9 +151,7 @@ export default class GitHubPrReviewFilterFeature extends BaseFeature {
 
 			// Check if we need to recreate the button
 			if (!this.buttonManager.isButtonActive()) {
-				this.buttonManager.setupButtonObserver(() => {
-					this.handleButtonClick();
-				});
+				this.buttonManager.createButton();
 			}
 		}
 	}

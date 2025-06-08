@@ -4,7 +4,10 @@
  */
 
 import { navigateToUrl } from "./github-navigation";
-import { buildGitHubPullRequestsUrl, type GitHubPullRequestsInfo } from "./github-url";
+import {
+	type GitHubPullRequestsInfo,
+	buildGitHubPullRequestsUrl,
+} from "./github-url";
 import type { FilterConfig } from "./types";
 
 export class FilterManager {
@@ -27,10 +30,9 @@ export class FilterManager {
 			throw new Error("No URL info available");
 		}
 
-		const targetUrl = buildGitHubPullRequestsUrl(
-			this.urlInfo.repository,
-			{ q: this.config.reviewFilterQuery }
-		);
+		const targetUrl = buildGitHubPullRequestsUrl(this.urlInfo.repository, {
+			q: this.config.reviewFilterQuery,
+		});
 
 		navigateToUrl({ url: targetUrl });
 	}

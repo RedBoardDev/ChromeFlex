@@ -19,64 +19,69 @@ export interface NavigationOptions {
 }
 
 /**
- * Navigates to a URL using GitHub's SPA navigation system
+ * Navigate to a URL using GitHub's SPA navigation
  */
 export function navigateToUrl(options: NavigationOptions): void {
 	const { url, preferTurbo = true, allowFallback = true } = options;
 
-	// Approach 1: Use Turbo.visit if available
-	if (preferTurbo && typeof (window as any).Turbo !== 'undefined' && (window as any).Turbo.visit) {
-		try {
-			(window as any).Turbo.visit(url);
-			return;
-		} catch (error) {
-			console.debug("Turbo.visit failed:", error);
-		}
-	}
-
-	// Approach 2: Simulate a link click (like GitHub's native filters)
-	try {
-		const hiddenLink = document.createElement('a');
-		hiddenLink.href = url;
-		hiddenLink.style.display = 'none';
-		hiddenLink.setAttribute('data-turbo-frame', 'repo-content-turbo-frame');
-		document.body.appendChild(hiddenLink);
-		hiddenLink.click();
-		hiddenLink.remove();
+	// Try Turbo navigation first (fastest)
+	if (preferTurbo && tryTurboNavigation(url)) {
 		return;
-	} catch (error) {
-		console.debug("Link simulation failed:", error);
 	}
 
-	// Approach 3: History API + Turbo events
-	try {
-		history.pushState(null, "", url);
-
-		// Trigger turbo:visit event
-		const turboEvent = new CustomEvent("turbo:visit", {
-			detail: { url, action: "advance" }
-		});
-		document.dispatchEvent(turboEvent);
-
-		// Fallback: trigger popstate to force update
-		setTimeout(() => {
-			window.dispatchEvent(new PopStateEvent("popstate"));
-		}, 100);
+	// Try link simulation (reliable)
+	if (tryLinkSimulation(url)) {
 		return;
-	} catch (error) {
-		console.debug("Turbo navigation failed:", error);
 	}
 
-	// Fallback: Full page reload
+	// Fallback to full page reload
 	if (allowFallback) {
 		window.location.href = url;
 	}
 }
 
 /**
+ * Try Turbo.visit navigation
+ */
+function tryTurboNavigation(url: string): boolean {
+	try {
+		// Check if Turbo is available
+		const turbo = (
+			window as unknown as { Turbo?: { visit: (url: string) => void } }
+		).Turbo;
+		if (turbo?.visit) {
+			turbo.visit(url);
+			return true;
+		}
+		return false;
+	} catch (error) {
+		return false;
+	}
+}
+
+/**
+ * Try link click simulation
+ */
+function tryLinkSimulation(url: string): boolean {
+	try {
+		const link = document.createElement("a");
+		link.href = url;
+		link.style.display = "none";
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+		return true;
+	} catch (error) {
+		return false;
+	}
+}
+
+/**
  * Sets up navigation listeners for SPA navigation detection
  */
-export function setupNavigationListener(callback: (url: string) => void): () => void {
+export function setupNavigationListener(
+	callback: (url: string) => void,
+): () => void {
 	const originalPushState = history.pushState;
 	const originalReplaceState = history.replaceState;
 
