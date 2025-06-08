@@ -39,7 +39,7 @@ function createFeature(featureName) {
 		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
 		.join("")}Feature`;
 
-	// Create feature template with improved types and error handling
+	// Create feature template
 	const featureTemplate = `import { BaseFeature } from "@/core/base-feature";
 import type { FeatureConfigInput, FeatureContext } from "@/types";
 
@@ -52,7 +52,6 @@ export default class ${className} extends BaseFeature {
 			enabled: true,
 			shouldActivate: (context: FeatureContext) => {
 				// Custom activation logic here
-				// Return true if this feature should run on the current page
 				return true;
 			},
 			errorRecovery: {
@@ -61,8 +60,7 @@ export default class ${className} extends BaseFeature {
 				fallbackMode: true,
 			},
 			settings: {
-				// Add any feature-specific settings here
-				// Example: theme: 'dark', enableAnimations: true
+				// Add feature-specific settings here
 			},
 		};
 
@@ -71,86 +69,23 @@ export default class ${className} extends BaseFeature {
 
 	protected async onInit(context: FeatureContext): Promise<void> {
 		this.logger.info("Initializing ${featureName} feature");
-
 		// Initialize your feature here
-		// - Subscribe to events using this.onEvent()
-		// - Setup data structures
-		// - Prepare resources
-
-		// Example: Listen to events
-		// this.onEvent("some-event", (event) => {
-		//   this.logger.debug("Received event:", event.payload);
-		// });
 	}
 
 	protected async onStart(context: FeatureContext): Promise<void> {
 		this.logger.info("Starting ${featureName} feature");
-
 		// Main feature logic here
-		// - Add DOM elements using this.addElement()
-		// - Start listeners
-		// - Begin active functionality
-
-		// Example: Add a button
-		// const button = document.createElement("button");
-		// button.textContent = "My Feature Button";
-		// button.onclick = () => this.handleButtonClick();
-		// document.body.appendChild(button);
-		// this.addElement("main-button", button);
-
-		// Example: Add cleanup task
-		// this.addCleanupTask(() => {
-		//   console.log("Custom cleanup for ${featureName}");
-		// });
 	}
 
 	protected async onStop(): Promise<void> {
 		this.logger.info("Stopping ${featureName} feature");
-
 		// Cleanup here
-		// - Remove DOM elements (automatic if using this.addElement())
-		// - Clear intervals/timeouts (automatic if using this.setTimeout/setInterval)
-		// - Stop listeners
-		// - Pause functionality
-
-		// Note: DOM elements and timers are automatically cleaned up
-		// Custom cleanup tasks are also automatically executed
 	}
 
 	protected async onDestroy(): Promise<void> {
 		this.logger.info("Destroying ${featureName} feature");
-
 		// Final cleanup here
-		// - Reset internal state
-		// - Release any remaining resources
-		// - Cleanup is mostly automatic via BaseFeature
-
-		this.emitEvent("${featureName}:destroyed", {
-			timestamp: Date.now(),
-		});
 	}
-
-	// Example private methods
-
-	// private handleButtonClick(): void {
-	//   try {
-	//     this.logger.info("Button clicked!");
-	//
-	//     this.emitEvent("${featureName}:button-clicked", {
-	//       timestamp: Date.now(),
-	//       url: window.location.href,
-	//     });
-	//   } catch (error) {
-	//     this.logger.error("Error in button click:", error);
-	//     throw error; // Let the error boundary handle it
-	//   }
-	// }
-
-	// private setupEventListeners(): void {
-	//   this.onEvent("some-external-event", (event) => {
-	//     this.logger.debug("Received external event:", event.payload);
-	//   });
-	// }
 }
 `;
 
@@ -198,21 +133,9 @@ export default class ${className} extends BaseFeature {
 	console.log(`\n🎉 Feature "${featureName}" created successfully!`);
 	console.log(`📁 Location: src/features/${featureName}/`);
 	console.log(`📝 Class name: ${className}`);
-	console.log("\n📋 Next steps:");
-	console.log("1. Update the matches array with your target URLs");
-	console.log("2. Implement your feature logic in the lifecycle methods");
-	console.log("3. Use this.addElement() for DOM elements (auto-cleanup)");
-	console.log("4. Use this.onEvent() for event listeners (auto-cleanup)");
-	console.log("5. Use this.addCleanupTask() for custom cleanup");
-	console.log("6. Test your feature with: npm run dev");
 	console.log(`\n🔧 Edit your feature: src/features/${featureName}/index.ts`);
-	console.log("\n💡 Tips:");
-	console.log("- Errors are automatically isolated and handled");
-	console.log("- Features can retry automatically on failure");
-	console.log("- Use this.logger for consistent logging");
-	console.log("- Emit events with this.emitEvent() for communication");
 }
 
-// Get feature name from command line args
+// Get feature name from command line arguments
 const featureName = process.argv[2];
 createFeature(featureName);

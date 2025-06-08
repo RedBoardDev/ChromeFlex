@@ -30,7 +30,7 @@ export function createGitHubButton(options: ButtonOptions): HTMLButtonElement {
 		text,
 		className = "btn-link px-2",
 		attributes = {},
-		onClick
+		onClick,
 	} = options;
 
 	const button = document.createElement("button");
@@ -39,9 +39,9 @@ export function createGitHubButton(options: ButtonOptions): HTMLButtonElement {
 	button.textContent = text;
 
 	// Set custom attributes
-	Object.entries(attributes).forEach(([key, value]) => {
+	for (const [key, value] of Object.entries(attributes)) {
 		button.setAttribute(key, value);
-	});
+	}
 
 	// Add click handler
 	if (onClick) {

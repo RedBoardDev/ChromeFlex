@@ -137,7 +137,6 @@ export function insertElement(
 ): boolean {
 	const target = getElement(targetSelector);
 	if (!target) {
-		console.warn(`Target element not found: ${targetSelector}`);
 		return false;
 	}
 
@@ -162,19 +161,17 @@ export function insertElement(
 // Style utilities
 export function setStyles(
 	element: Element,
-	styles: Partial<CSSStyleDeclaration>,
-): void {
+	styles: Record<string, string>,
+): boolean {
 	if (!(element instanceof HTMLElement)) {
-		console.warn("Element is not an HTMLElement, cannot set styles");
-		return;
+		return false;
 	}
 
 	for (const [property, value] of Object.entries(styles)) {
-		if (value !== undefined) {
-			(element.style as unknown as Record<string, string>)[property] =
-				String(value);
-		}
+		element.style.setProperty(property, value);
 	}
+
+	return true;
 }
 
 // Class utilities

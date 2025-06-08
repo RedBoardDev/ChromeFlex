@@ -43,12 +43,15 @@ export class ElementObserver {
 	/**
 	 * Start observing for an element to appear
 	 */
-	observe(options: ElementObserverOptions, callbacks: ElementObserverCallbacks): void {
+	observe(
+		options: ElementObserverOptions,
+		callbacks: ElementObserverCallbacks,
+	): void {
 		const {
 			selector,
 			timeout = 15000,
 			root = document.body,
-			subtree = true
+			subtree = true,
 		} = options;
 
 		// Check if element already exists
@@ -61,7 +64,7 @@ export class ElementObserver {
 		// Create observer
 		this.observer = new MutationObserver((mutations) => {
 			for (const mutation of mutations) {
-				if (mutation.type === 'childList') {
+				if (mutation.type === "childList") {
 					for (const addedNode of mutation.addedNodes) {
 						if (addedNode.nodeType === Node.ELEMENT_NODE) {
 							const element = addedNode as Element;
@@ -85,7 +88,7 @@ export class ElementObserver {
 		// Start observing
 		this.observer.observe(root, {
 			childList: true,
-			subtree
+			subtree,
 		});
 
 		// Set timeout
@@ -118,7 +121,7 @@ export class ElementObserver {
 export function waitForElement(
 	selector: string,
 	timeout = 5000,
-	root = document.body
+	root = document.body,
 ): Promise<Element | null> {
 	return new Promise((resolve) => {
 		const observer = new ElementObserver();
@@ -127,8 +130,8 @@ export function waitForElement(
 			{ selector, timeout, root },
 			{
 				onFound: (element) => resolve(element),
-				onTimeout: () => resolve(null)
-			}
+				onTimeout: () => resolve(null),
+			},
 		);
 	});
 }

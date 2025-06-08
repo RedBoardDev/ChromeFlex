@@ -1,3 +1,9 @@
+/**
+ * Content Script
+ * Main entry point for the Chrome extension content script
+ */
+
+import { IS_DEVELOPMENT } from "@/config/env";
 import { featureManager } from "@/core/feature-manager";
 import { onReady } from "@/utils/events";
 import { logger } from "@/utils/logger";
@@ -25,7 +31,7 @@ async function initializeExtension(): Promise<void> {
 		logger.info("✅ ChromeFlex initialized successfully");
 
 		// Expose debug utilities in development
-		if (process.env.NODE_ENV === "development") {
+		if (IS_DEVELOPMENT) {
 			(window as unknown as { ChromeFlex: unknown }).ChromeFlex = {
 				featureManager,
 				logger,
@@ -65,10 +71,12 @@ window.addEventListener("popstate", () => {
 	}, 100);
 });
 
-// Start when DOM is ready
-onReady(() => {
+// Start the extension when DOM is ready
+if (document.readyState === "loading") {
+	document.addEventListener("DOMContentLoaded", initializeExtension);
+} else {
 	initializeExtension();
-});
+}
 
 // Cleanup on page unload
 window.addEventListener("beforeunload", () => {

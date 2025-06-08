@@ -4,6 +4,7 @@ import type {
 	EventListener,
 	EventPayload,
 } from "@/types";
+import { logger } from "@/utils/logger";
 
 export class ChromeFlexEventBus implements EventBus {
 	private readonly listeners = new Map<string, Set<EventListener>>();
@@ -21,23 +22,19 @@ export class ChromeFlexEventBus implements EventBus {
 		};
 
 		const eventListeners = this.listeners.get(type);
-		if (!eventListeners) return;
+		if (!eventListeners || eventListeners.size === 0) return;
 
 		// Execute listeners safely
 		for (const listener of eventListeners) {
 			try {
 				const result = listener(event);
-				// Handle async listeners
 				if (result instanceof Promise) {
 					result.catch((error) => {
-						console.error(
-							`[EventBus] Error in async listener for event ${type}:`,
-							error,
-						);
+						logger.error(`Async event listener error for ${type}:`, error);
 					});
 				}
 			} catch (error) {
-				console.error(`[EventBus] Error in listener for event ${type}:`, error);
+				logger.error(`Event listener error for ${type}:`, error);
 			}
 		}
 	}
@@ -51,14 +48,18 @@ export class ChromeFlexEventBus implements EventBus {
 		}
 
 		const eventListeners = this.listeners.get(type);
-		if (!eventListeners) return () => {};
-		eventListeners.add(listener as EventListener);
+		if (eventListeners) {
+			eventListeners.add(listener as EventListener);
+		}
 
 		// Return unsubscribe function
 		return () => {
-			eventListeners.delete(listener as EventListener);
-			if (eventListeners.size === 0) {
-				this.listeners.delete(type);
+			const listeners = this.listeners.get(type);
+			if (listeners) {
+				listeners.delete(listener as EventListener);
+				if (listeners.size === 0) {
+					this.listeners.delete(type);
+				}
 			}
 		};
 	}
@@ -81,19 +82,13 @@ export class ChromeFlexEventBus implements EventBus {
 		this.on(type, onceListener);
 	}
 
-	// Utility methods
-	getEventTypes(): readonly string[] {
-		return Array.from(this.listeners.keys());
+	clear(): void {
+		this.listeners.clear();
 	}
 
 	getListenerCount(type: string): number {
 		return this.listeners.get(type)?.size ?? 0;
 	}
-
-	clear(): void {
-		this.listeners.clear();
-	}
 }
 
-// Singleton instance
 export const eventBus = new ChromeFlexEventBus();

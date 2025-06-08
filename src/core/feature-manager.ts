@@ -436,14 +436,24 @@ export class ChromeFlexFeatureManager {
 		// 	logger.warn("Could not load test-feature:", error);
 		// }
 
+		// try {
+		// 	// Import github-pr-review-filter feature
+		// 	const { default: GithubPrReviewFilterFeature } = await import(
+		// 		"../features/github-pr-review-filter/index.js"
+		// 	);
+		// 	features.push(GithubPrReviewFilterFeature);
+		// } catch (error) {
+		// 	logger.warn("Could not load github-pr-review-filter feature:", error);
+		// }
+
 		try {
-			// Import github-pr-review-filter feature
-			const { default: GithubPrReviewFilterFeature } = await import(
-				"../features/github-pr-review-filter/index.js"
+			// Import jira-branch-helper feature
+			const { default: JiraBranchHelperFeature } = await import(
+				"../features/jira-branch-helper/index.js"
 			);
-			features.push(GithubPrReviewFilterFeature);
+			features.push(JiraBranchHelperFeature);
 		} catch (error) {
-			logger.warn("Could not load github-pr-review-filter feature:", error);
+			logger.warn("Could not load jira-branch-helper feature:", error);
 		}
 
 		return features;
