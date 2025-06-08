@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 // Chrome storage utilities with fallback to localStorage
 export interface StorageOptions {
 	readonly useLocal?: boolean;
@@ -9,6 +11,13 @@ interface StorageData<T = unknown> {
 	readonly timestamp: number;
 	readonly ttl?: number | undefined;
 }
+
+// Zod schema for storage data validation
+const StorageDataSchema = z.object({
+	value: z.unknown(),
+	timestamp: z.number(),
+	ttl: z.number().optional(),
+});
 
 export class ChromeFlexStorage {
 	// Chrome storage (preferred)
@@ -30,10 +39,7 @@ export class ChromeFlexStorage {
 		try {
 			await chrome.storage.sync.set({ [key]: data });
 		} catch (error) {
-			console.warn(
-				"Chrome storage failed, falling back to localStorage:",
-				error,
-			);
+			// Fallback to localStorage on Chrome storage failure
 			return this.setLocal(key, data);
 		}
 	}
@@ -63,10 +69,7 @@ export class ChromeFlexStorage {
 
 			return data.value;
 		} catch (error) {
-			console.warn(
-				"Chrome storage failed, falling back to localStorage:",
-				error,
-			);
+			// Fallback to localStorage on Chrome storage failure
 			return this.getLocal(key, defaultValue);
 		}
 	}
@@ -79,10 +82,7 @@ export class ChromeFlexStorage {
 		try {
 			await chrome.storage.sync.remove(key);
 		} catch (error) {
-			console.warn(
-				"Chrome storage failed, falling back to localStorage:",
-				error,
-			);
+			// Fallback to localStorage on Chrome storage failure
 			return this.removeLocal(key);
 		}
 	}
@@ -95,10 +95,7 @@ export class ChromeFlexStorage {
 		try {
 			await chrome.storage.sync.clear();
 		} catch (error) {
-			console.warn(
-				"Chrome storage failed, falling back to localStorage:",
-				error,
-			);
+			// Fallback to localStorage on Chrome storage failure
 			return this.clearLocal();
 		}
 	}
@@ -128,10 +125,7 @@ export class ChromeFlexStorage {
 
 			return processed;
 		} catch (error) {
-			console.warn(
-				"Chrome storage failed, falling back to localStorage:",
-				error,
-			);
+			// Fallback to localStorage on Chrome storage failure
 			return this.getAllLocal();
 		}
 	}
@@ -141,8 +135,7 @@ export class ChromeFlexStorage {
 		try {
 			localStorage.setItem(`chromeflex:${key}`, JSON.stringify(data));
 		} catch (error) {
-			console.error("Failed to set localStorage item:", error);
-			throw error;
+			throw new Error(`Failed to set localStorage item: ${error}`);
 		}
 	}
 
@@ -163,7 +156,6 @@ export class ChromeFlexStorage {
 
 			return data.value;
 		} catch (error) {
-			console.error("Failed to get localStorage item:", error);
 			return defaultValue;
 		}
 	}
@@ -200,13 +192,7 @@ export class ChromeFlexStorage {
 	}
 
 	private isValidStorageData(data: unknown): data is StorageData {
-		return (
-			typeof data === "object" &&
-			data !== null &&
-			"value" in data &&
-			"timestamp" in data &&
-			typeof (data as { timestamp: unknown }).timestamp === "number"
-		);
+		return StorageDataSchema.safeParse(data).success;
 	}
 }
 
