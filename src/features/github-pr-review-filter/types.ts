@@ -1,5 +1,5 @@
 /**
- * Types for GitHub PR Review Filter Feature
+ * GitHub PR Review Filter Feature Types
  */
 
 import type { GitHubPullRequestsInfo } from "./github-url";
@@ -19,9 +19,14 @@ export interface FilterConfig {
 	targetButtonSelector: string;
 }
 
-export const DEFAULT_FILTER_CONFIG: FilterConfig = {
-	reviewFilterQuery:
-		"sort:updated-desc is:pr is:open user-review-requested:@me",
-	buttonText: "Review PR",
-	targetButtonSelector: "button.btn-link.rgh-open-all-conversations.px-2",
-};
+export interface ButtonManagerState {
+	isActive: boolean;
+	button: HTMLButtonElement | null;
+	observer: MutationObserver | null;
+}
+
+export interface NavigationEvent {
+	url: string;
+	timestamp: number;
+	type: "spa" | "full";
+}

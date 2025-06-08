@@ -1,13 +1,14 @@
 import { BaseFeature } from "@/core/base-feature";
 import type { FeatureConfigInput, FeatureContext } from "@/types";
 import { ButtonManager } from "./button-manager";
+import { GITHUB_PR_REVIEW_FILTER_CONFIG } from "./config";
 import { FilterManager } from "./filter-manager";
 import { setupNavigationListener } from "./github-navigation";
 import {
 	isGitHubPullRequestsPage,
 	parseGitHubPullRequestsUrl,
 } from "./github-url";
-import { DEFAULT_FILTER_CONFIG, type FilterConfig } from "./types";
+import type { FilterConfig } from "./types";
 
 export default class GitHubPrReviewFilterFeature extends BaseFeature {
 	private filterManager: FilterManager;
@@ -16,41 +17,30 @@ export default class GitHubPrReviewFilterFeature extends BaseFeature {
 	private navigationCleanup: (() => void) | null = null;
 
 	constructor() {
-		const featureConfig: FeatureConfigInput = {
-			name: "github-pr-review-filter",
-			matches: [
-				"https://github.com/*/*/pulls*",
-				"https://github.com/*/*/pulls/*",
-			],
-			priority: 10,
-			enabled: true,
+		const config: FeatureConfigInput = {
+			...GITHUB_PR_REVIEW_FILTER_CONFIG.FEATURE_CONFIG,
+			matches: GITHUB_PR_REVIEW_FILTER_CONFIG.URL_MATCHES,
 			shouldActivate: (context: FeatureContext) => {
 				const isGitHubPrPage = isGitHubPullRequestsPage(context.url);
 				this.logger.debug(`Checking activation for URL: ${context.url}`);
 				this.logger.debug(`Is GitHub PR page: ${isGitHubPrPage}`);
 				return isGitHubPrPage;
 			},
-			errorRecovery: {
-				maxRetries: 3,
-				retryDelay: 1000,
-				fallbackMode: true,
-			},
-			settings: {
-				buttonText: DEFAULT_FILTER_CONFIG.buttonText,
-				filterQuery: DEFAULT_FILTER_CONFIG.reviewFilterQuery,
-			},
 		};
 
-		super(featureConfig);
+		super(config);
 
-		// Initialize filter config
-		this.filterConfig = DEFAULT_FILTER_CONFIG;
+		// Initialize filter config from centralized config
+		this.filterConfig = {
+			reviewFilterQuery: GITHUB_PR_REVIEW_FILTER_CONFIG.FILTER.REVIEW_QUERY,
+			buttonText: GITHUB_PR_REVIEW_FILTER_CONFIG.FILTER.BUTTON_TEXT,
+			targetButtonSelector:
+				GITHUB_PR_REVIEW_FILTER_CONFIG.SELECTORS.TARGET_BUTTON,
+		};
 
 		// Initialize managers
 		this.filterManager = new FilterManager(this.filterConfig);
-		this.buttonManager = new ButtonManager(this.filterConfig, () => {
-			this.handleButtonClick();
-		});
+		this.buttonManager = new ButtonManager(this.filterConfig);
 	}
 
 	protected async onInit(context: FeatureContext): Promise<void> {
@@ -82,20 +72,22 @@ export default class GitHubPrReviewFilterFeature extends BaseFeature {
 			return;
 		}
 
-		this.logger.info("On PR page, creating button");
+		this.logger.info("On PR page, setting up button observer");
 
 		// Update URL info
 		this.filterManager.updateUrlInfo(urlInfo);
 
-		// Create button
-		this.buttonManager.createButton();
+		// Setup button observer
+		this.buttonManager.setupButtonObserver(() => {
+			this.handleButtonClick();
+		});
 	}
 
 	protected async onStop(): Promise<void> {
 		this.logger.info("Stopping GitHub PR Review Filter feature");
 
-		// Remove button
-		this.buttonManager.removeButton();
+		// Cleanup button manager
+		this.buttonManager.cleanup();
 
 		// Reset filter URL info
 		this.filterManager.updateUrlInfo(null);
@@ -110,8 +102,8 @@ export default class GitHubPrReviewFilterFeature extends BaseFeature {
 			this.navigationCleanup = null;
 		}
 
-		// Remove button
-		this.buttonManager.removeButton();
+		// Cleanup managers
+		this.buttonManager.cleanup();
 
 		this.emitEvent("github-pr-review-filter:destroyed", {
 			timestamp: Date.now(),
@@ -151,7 +143,9 @@ export default class GitHubPrReviewFilterFeature extends BaseFeature {
 
 			// Check if we need to recreate the button
 			if (!this.buttonManager.isButtonActive()) {
-				this.buttonManager.createButton();
+				this.buttonManager.setupButtonObserver(() => {
+					this.handleButtonClick();
+				});
 			}
 		}
 	}

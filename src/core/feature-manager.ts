@@ -416,35 +416,15 @@ export class ChromeFlexFeatureManager {
 		// Static imports to avoid dynamic import resolution issues in Chrome extensions
 		const features: Array<new () => Feature> = [];
 
-		// try {
-		// 	// Import example-button feature
-		// 	const { default: ExampleButtonFeature } = await import(
-		// 		"../features/example-button/index.js"
-		// 	);
-		// 	features.push(ExampleButtonFeature);
-		// } catch (error) {
-		// 	logger.warn("Could not load example-button feature:", error);
-		// }
-
-		// try {
-		// 	// Import test-feature
-		// 	const { default: TestFeature } = await import(
-		// 		"../features/test-feature/index.js"
-		// 	);
-		// 	features.push(TestFeature);
-		// } catch (error) {
-		// 	logger.warn("Could not load test-feature:", error);
-		// }
-
-		// try {
-		// 	// Import github-pr-review-filter feature
-		// 	const { default: GithubPrReviewFilterFeature } = await import(
-		// 		"../features/github-pr-review-filter/index.js"
-		// 	);
-		// 	features.push(GithubPrReviewFilterFeature);
-		// } catch (error) {
-		// 	logger.warn("Could not load github-pr-review-filter feature:", error);
-		// }
+		try {
+			// Import github-pr-review-filter feature
+			const { default: GithubPrReviewFilterFeature } = await import(
+				"../features/github-pr-review-filter/index.js"
+			);
+			features.push(GithubPrReviewFilterFeature);
+		} catch (error) {
+			logger.warn("Could not load github-pr-review-filter feature:", error);
+		}
 
 		try {
 			// Import jira-branch-helper feature
