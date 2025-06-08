@@ -436,6 +436,16 @@ export class ChromeFlexFeatureManager {
 			logger.warn("Could not load jira-branch-helper feature:", error);
 		}
 
+		try {
+			// Import github-pr-title-formatter feature
+			const { default: GitHubPRTitleFormatterFeature } = await import(
+				"../features/github-pr-title-formatter/index.js"
+			);
+			features.push(GitHubPRTitleFormatterFeature);
+		} catch (error) {
+			logger.warn("Could not load github-pr-title-formatter feature:", error);
+		}
+
 		return features;
 	}
 }
