@@ -22,6 +22,7 @@
 		"@semantic-release/release-notes-generator": "^12.0.0",
 		"@types/chrome": "^0.0.268",
 		"@types/node": "^22.15.30",
+		"dotenv": "^16.5.0",
 		"husky": "^8.0.0",
 		"semantic-release": "^22.0.0",
 		"typescript": "^5.5.0",
@@ -29,5 +30,8 @@
 	},
 	"engines": {
 		"node": ">=22"
+	},
+	"dependencies": {
+		"zod": "^3.25.56"
 	}
 }
