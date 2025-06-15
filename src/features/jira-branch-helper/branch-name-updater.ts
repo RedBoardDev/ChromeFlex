@@ -29,6 +29,14 @@ export async function updateBranchNameInput(
 		// Set the new branch name
 		inputElement.value = branchName;
 
+		// Copy to clipboard
+		try {
+			const gitCommand = `git switch main && git pull && git switch ${branchName}`;
+			await navigator.clipboard.writeText(gitCommand);
+		} catch (error) {
+			console.warn("Failed to copy to clipboard:", error);
+		}
+
 		// Trigger various events to ensure the change is registered
 		inputElement.dispatchEvent(new Event("input", { bubbles: true }));
 		inputElement.dispatchEvent(new Event("change", { bubbles: true }));
