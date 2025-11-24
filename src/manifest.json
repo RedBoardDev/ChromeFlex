@@ -1,7 +1,7 @@
 {
 	"manifest_version": 3,
 	"name": "ChromeFlex",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Flexible Chrome extension with modular architecture",
 	"permissions": ["activeTab", "storage"],
 	"background": {

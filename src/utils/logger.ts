@@ -6,7 +6,7 @@ export { LogLevel } from "@/types";
 export class ChromeFlexLogger implements Logger {
 	protected readonly prefix: string = "[ChromeFlex]";
 
-	constructor(private readonly level: LogLevel = LogLevel.DEBUG) {}
+	constructor(private readonly level: LogLevel = LogLevel.WARN) {}
 
 	private log(
 		level: LogLevel,
