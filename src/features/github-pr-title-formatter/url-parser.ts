@@ -16,22 +16,53 @@ export function parseGitHubUrl(url: string): UrlInfo {
 	};
 
 	// Vérifie si l'URL correspond au pattern attendu
-	const isValidUrl = GITHUB_PR_TITLE_FORMATTER_CONFIG.URL_MATCHES.some(
-		(pattern) => new RegExp(pattern.replace(/\*/g, ".*")).test(url),
+	const matchesPattern = GITHUB_PR_TITLE_FORMATTER_CONFIG.URL_MATCHES.some(
+		(pattern) => new RegExp(`^${pattern.replace(/\*/g, ".*")}$`).test(url),
 	);
 
-	if (!isValidUrl) {
+	if (!matchesPattern) {
 		return urlInfo;
 	}
 
-	urlInfo.isValidUrl = true;
+	let parsedUrl: URL;
+	try {
+		parsedUrl = new URL(url);
+	} catch {
+		return urlInfo;
+	}
 
-	// Extrait le nom de branche depuis l'URL
-	const branchMatch = url.match(
-		GITHUB_PR_TITLE_FORMATTER_CONFIG.PATTERNS.BRANCH_NAME,
-	);
-	if (branchMatch?.[1]) {
-		urlInfo.branchName = decodeURIComponent(branchMatch[1]);
+	// Vérifie que l'on est bien sur GitHub
+	if (!parsedUrl.hostname.includes("github.com")) {
+		return urlInfo;
+	}
+
+	// Découpe le chemin pour trouver la section "compare"
+	const pathSegments = parsedUrl.pathname.split("/").filter(Boolean);
+	const compareIndex = pathSegments.indexOf("compare");
+
+	if (compareIndex === -1) {
+		return urlInfo;
+	}
+
+	const afterCompareSegments = pathSegments.slice(compareIndex + 1);
+	if (afterCompareSegments.length === 0) {
+		return urlInfo;
+	}
+
+	// Récupère la partie après "compare/" (peut contenir base...head ou juste head)
+	const comparePart = decodeURIComponent(afterCompareSegments.join("/"));
+	if (!comparePart) {
+		return urlInfo;
+	}
+
+	// Si format base...head, on garde la partie head (branche source)
+	const branchCandidate = comparePart.includes("...")
+		? (comparePart.split("...").pop() ?? null)
+		: comparePart;
+
+	if (branchCandidate) {
+		urlInfo.branchName = branchCandidate;
+		urlInfo.isValidUrl = true;
 	}
 
 	return urlInfo;

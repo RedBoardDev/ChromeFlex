@@ -56,13 +56,12 @@ function cleanDescription(description: string): string {
 	}
 
 	// Supprime les mots exclus
+	const excludedWords = new Set<string>([
+		...GITHUB_PR_TITLE_FORMATTER_CONFIG.FORMAT.EXCLUDED_WORDS,
+	]);
 	const words = cleaned.split(/\s+/).filter((word) => {
 		const lowerWord = word.toLowerCase();
-		return (
-			!GITHUB_PR_TITLE_FORMATTER_CONFIG.FORMAT.EXCLUDED_WORDS.includes(
-				lowerWord,
-			) && word.trim() !== ""
-		);
+		return !excludedWords.has(lowerWord) && word.trim() !== "";
 	});
 
 	// Rejoint et nettoie
