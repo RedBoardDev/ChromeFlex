@@ -38,13 +38,15 @@ Issue Summary: "{summary}"
 
 Return ONLY a JSON object with this exact format:
 {
-  "prefix": "feat|fix",
-  "improvedSummary": "maximum-5-descriptive-words-separated-by-hyphens"
+  "prefix": "feat|fix|chore",
+  "improvedSummary": "maximum-6-descriptive-words-separated-by-hyphens"
 }
 
 Rules:
-- Choose "feat" for new features/improvements, "fix" for bug fixes
-- Use maximum 5 descriptive English words
+- feat Commits that add, adjust or remove a new feature
+- fix Commits that fix a bug
+- chore Commits that do not add a new feature or fix a bug, but are necessary for the project to run (e.g. updating dependencies, formatting code, etc.)
+- Use maximum 6 descriptive English words
 - All lowercase, separated by hyphens
 - Be concise and technical
 - Focus on the main action/component being changed`,

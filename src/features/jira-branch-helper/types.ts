@@ -29,15 +29,25 @@ export interface BranchNameGenerationResult {
 
 export interface MistralApiResponse {
 	id: string;
+	created?: number;
+	model?: string;
+	usage?: {
+		prompt_tokens?: number;
+		completion_tokens?: number;
+		total_tokens?: number;
+	};
 	choices: Array<{
-		message: {
-			content: string;
+		index?: number | string;
+		finish_reason?: string | null;
+		message?: {
+			role?: string;
+			content?: string | null;
 		};
 	}>;
 }
 
 export interface BranchNameComponents {
-	prefix: "feat" | "fix";
+	prefix: "feat" | "fix" | "chore";
 	issueKey: string;
 	improvedSummary: string;
 }

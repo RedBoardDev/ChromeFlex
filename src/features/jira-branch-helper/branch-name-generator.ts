@@ -83,6 +83,7 @@ async function callMistralApi(
 					],
 					max_tokens: JIRA_BRANCH_HELPER_CONFIG.MISTRAL_API.MAX_TOKENS,
 					temperature: JIRA_BRANCH_HELPER_CONFIG.MISTRAL_API.TEMPERATURE,
+					response_format: { type: "json_object" },
 				}),
 			},
 		);
@@ -99,34 +100,68 @@ async function callMistralApi(
 			throw new Error("No response from Mistral API");
 		}
 
-		const content = data.choices[0]?.message?.content?.trim();
-		if (!content) {
+		const content = data.choices[0]?.message?.content;
+		if (typeof content !== "string") {
+			throw new Error("Unexpected content type from Mistral API");
+		}
+
+		if (!content.trim()) {
 			throw new Error("Empty response from Mistral API");
 		}
 
-		// Parse the JSON response
-		const parsed = JSON.parse(content);
+		// Parse the JSON response (resilient to markdown/code fences)
+		const parsed = parseMistralJson(content);
+
+		const prefixRaw = parsed.prefix;
+		const summaryRaw = parsed.improvedSummary;
 
 		// Validate the response format
-		if (!parsed.prefix || !parsed.improvedSummary) {
+		if (
+			typeof prefixRaw !== "string" ||
+			typeof summaryRaw !== "string" ||
+			!prefixRaw.trim() ||
+			!summaryRaw.trim()
+		) {
 			throw new Error("Invalid response format from Mistral API");
 		}
 
 		// Validate prefix
-		const prefix = parsed.prefix.toLowerCase();
-		if (prefix !== "feat" && prefix !== "fix") {
+		const prefix = prefixRaw.toLowerCase();
+		const allowedPrefixes = new Set(["feat", "fix", "chore"]);
+		if (!allowedPrefixes.has(prefix)) {
 			throw new Error(`Invalid prefix received: ${prefix}`);
 		}
 
 		return {
-			prefix: prefix as "feat" | "fix",
+			prefix: prefix as "feat" | "fix" | "chore",
 			issueKey: "", // Will be set later
-			improvedSummary: parsed.improvedSummary.toLowerCase(),
+			improvedSummary: summaryRaw.toLowerCase(),
 		};
 	} catch (error) {
 		// Return null instead of logging to console
 		return null;
 	}
+}
+
+/**
+ * Parse the Mistral response content which may contain fenced code blocks
+ */
+function parseMistralJson(content: string): Record<string, unknown> {
+	const trimmed = content.trim();
+	const withoutFence = trimmed.startsWith("```")
+		? trimmed
+				.replace(/^```[a-zA-Z]*\n?/, "")
+				.replace(/```$/, "")
+				.trim()
+		: trimmed;
+
+	// Extract the first JSON object even if surrounded by extra text
+	const jsonMatch = withoutFence.match(/\{[\s\S]*\}/);
+	if (!jsonMatch) {
+		throw new Error("No JSON object found in Mistral response");
+	}
+
+	return JSON.parse(jsonMatch[0]);
 }
 
 /**
@@ -137,6 +172,5 @@ function createBranchName(
 	issueKey: string,
 ): string {
 	const { prefix, improvedSummary } = components;
-	// Keep issue key in uppercase, everything else lowercase
-	return `${prefix}/${issueKey.toUpperCase()}-${improvedSummary}`;
+	return `${prefix}-${issueKey.toUpperCase()}-${improvedSummary}`;
 }
