@@ -446,6 +446,16 @@ export class ChromeFlexFeatureManager {
 			logger.warn("Could not load github-pr-title-formatter feature:", error);
 		}
 
+		try {
+			// Import github-pr-review-copy-path feature
+			const { default: GitHubPRReviewCopyPathFeature } = await import(
+				"../features/github-pr-review-copy-path/index.js"
+			);
+			features.push(GitHubPRReviewCopyPathFeature);
+		} catch (error) {
+			logger.warn("Could not load github-pr-review-copy-path feature:", error);
+		}
+
 		return features;
 	}
 }
